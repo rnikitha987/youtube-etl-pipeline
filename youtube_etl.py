@@ -112,4 +112,4 @@ df.columns
 
 df['publishedAt'] = pd.to_datetime(df['publishedAt'], errors='coerce')
 
-!ls
+
