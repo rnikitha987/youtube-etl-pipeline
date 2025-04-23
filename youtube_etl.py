@@ -1,8 +1,8 @@
 import subprocess
 subprocess.run(["pip", "install", "--upgrade", "google-api-python-client", "google-cloud-bigquery"])
 
-from google.colab import auth
-auth.authenticate_user()
+# from google.colab import auth
+# auth.authenticate_user()
 
 from googleapiclient.discovery import build
 import pandas as pd
