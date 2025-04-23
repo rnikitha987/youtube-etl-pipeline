@@ -1,115 +1,58 @@
-import subprocess
-subprocess.run(["pip", "install", "--upgrade", "google-api-python-client", "google-cloud-bigquery"])
-
-# from google.colab import auth
-# auth.authenticate_user()
-
 from googleapiclient.discovery import build
+from google.cloud import bigquery
 import pandas as pd
+import matplotlib.pyplot as plt
 
-API_KEY = "AIzaSyD1mmTcKoMkp-uCVapXWoGjrCnjYBW6yMU"  # ← Replace this with your actual API key
+# 🔑 YouTube API Key
+API_KEY = "AIzaSyD1mmTcKoMkp-uCVapXWoGjrCnjYBW6yMU"  
 
+# 🔍 Fetch data from YouTube API
 youtube = build("youtube", "v3", developerKey=API_KEY)
-
 request = youtube.search().list(
     q="data engineering",
     part="snippet",
     maxResults=10,
     type="video"
 )
-
 response = request.execute()
 
-# Extract and transform to DataFrame
-videos = []
-for item in response['items']:
-    videos.append({
-        'videoId': item['id']['videoId'],
-        'title': item['snippet']['title'],
-        'channel': item['snippet']['channelTitle'],
-        'publishedAt': item['snippet']['publishedAt']
-    })
+# 📊 Transform response into a DataFrame
+videos = [{
+    'videoId': item['id']['videoId'],
+    'title': item['snippet']['title'],
+    'channel': item['snippet']['channelTitle'],
+    'publishedAt': item['snippet']['publishedAt']
+} for item in response['items']]
 
 df = pd.DataFrame(videos)
-df.head()
+df['publishedAt'] = pd.to_datetime(df['publishedAt'], errors='coerce')
 
-
-df.to_csv("youtube_data.csv", index=False)
-
-from google.colab import files
-files.download("youtube_data.csv")
-
-from google.colab import auth
-auth.authenticate_user()
-
-from google.cloud import bigquery
-
-# ✅ Set your project ID
+# 🟦 Upload to BigQuery
 project_id = "youtubeetlproject-456420"
+client = bigquery.Client(project=project_id)
 
-# ✅ Initialize client without any argument
-client = bigquery.Client()
+table_ref = f"{project_id}.youtube_data.youtube_videos"
+job_config = bigquery.LoadJobConfig(write_disposition="WRITE_APPEND")
 
-# ✅ Now write the SQL query
-query = """
-SELECT
-  title,
-  channelTitle,
-  publishedAt
-FROM
-  `youtubetetlproject-456420.youtube_data.youtube_videos`
-ORDER BY publishedAt DESC
-LIMIT 10
-"""
+job = client.load_table_from_dataframe(df, table_ref, job_config=job_config)
+job.result()
 
-# # ✅ Execute the query (DO NOT pass project=... here)
-# df = client.query(query).to_dataframe()
+print(f"✅ Uploaded {job.output_rows} rows to {table_ref}")
 
-# ✅ Display results
-df.head()
-
-import matplotlib.pyplot as plt
-
-# Convert publishedAt to datetime
-df['publishedAt'] = pd.to_datetime(df['publishedAt'])
-
-# Plot count of videos per publish date
+# 📈 Optional: Plot video uploads over time
 df['publishedAt'].dt.date.value_counts().sort_index().plot(kind='bar', figsize=(12, 4), title="YouTube Videos by Date")
 plt.xlabel("Date")
 plt.ylabel("Video Count")
 plt.xticks(rotation=45)
+plt.tight_layout()
 plt.show()
 
-df.columns
-
+# 📊 Optional: Top channels
 df['channel'].value_counts().head(5).plot(kind='bar', title="Top 5 Channels by Video Count")
 plt.xlabel("Channel")
 plt.ylabel("Videos")
 plt.xticks(rotation=45)
+plt.tight_layout()
 plt.show()
-
-df.to_csv("top_youtube_videos.csv", index=False)
-from google.colab import files
-files.download("top_youtube_videos.csv")
-
-# Load the YouTube data CSV
-df = pd.read_csv("youtube_data.csv")  # Make sure this file exists
-df.head()
-
-# ✅ Final upload step to send df to BigQuery
-table_ref = f"{project_id}.youtube_data.youtube_videos"
-
-job_config = bigquery.LoadJobConfig(write_disposition="WRITE_APPEND")
-
-# job = client.load_table_from_dataframe(df, table_ref, job_config=job_config)
-# job.result()
-
-# print(f"✅ Uploaded {job.output_rows} rows to {table_ref}")
-
-
-df.columns
-
-
-df['publishedAt'] = pd.to_datetime(df['publishedAt'], errors='coerce')
 
 
