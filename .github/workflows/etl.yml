@@ -18,7 +18,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install google-api-python-client google-cloud-bigquery pandas
+          pip install google-api-python-client google-cloud-bigquery pandas matplotlib
 
       - name: Run ETL
         env:
