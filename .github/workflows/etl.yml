@@ -2,14 +2,16 @@ name: Daily YouTube ETL
 
 on:
   schedule:
-    - cron: '0 13 * * *'  # 9AM EST
+    - cron: '0 13 * * *'  # 9AM EST daily
   workflow_dispatch:
 
 jobs:
   run-etl:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -20,12 +22,10 @@ jobs:
         run: |
           pip install google-api-python-client google-cloud-bigquery pandas matplotlib
 
-      - name: Run ETL
+      - name: Decode service account key
+        run: echo "$GCP_CREDENTIALS_B64" | base64 --decode > key.json
         env:
-          GOOGLE_APPLICATION_CREDENTIALS_JSON: ${{ secrets.GCP_CREDENTIALS }}
-        run: |
-          echo "$GOOGLE_APPLICATION_CREDENTIALS_JSON" > key.json
-          export GOOGLE_APPLICATION_CREDENTIALS=key.json
-          python youtube_etl.py
+          GCP_CREDENTIALS_B64: ${{ secrets.GCP_CREDENTIALS_B64 }}
 
-
+      - name: Run ETL script
+        run: python youtube_etl.py
