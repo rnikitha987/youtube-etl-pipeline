@@ -39,20 +39,3 @@ job.result()
 
 print(f"✅ Uploaded {job.output_rows} rows to {table_ref}")
 
-# 📈 Optional: Plot video uploads over time
-df['publishedAt'].dt.date.value_counts().sort_index().plot(kind='bar', figsize=(12, 4), title="YouTube Videos by Date")
-plt.xlabel("Date")
-plt.ylabel("Video Count")
-plt.xticks(rotation=45)
-plt.tight_layout()
-plt.show()
-
-# 📊 Optional: Top channels
-df['channel'].value_counts().head(5).plot(kind='bar', title="Top 5 Channels by Video Count")
-plt.xlabel("Channel")
-plt.ylabel("Videos")
-plt.xticks(rotation=45)
-plt.tight_layout()
-plt.show()
-
-
