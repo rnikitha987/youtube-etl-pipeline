@@ -29,7 +29,7 @@ df['publishedAt'] = pd.to_datetime(df['publishedAt'], errors='coerce')
 
 # 🟦 Upload to BigQuery
 project_id = "youtubeetlproject-456420"
-client = bigquery.Client(project=project_id)
+client = bigquery.Client.from_service_account_json("key.json")
 
 table_ref = f"{project_id}.youtube_data.youtube_videos"
 job_config = bigquery.LoadJobConfig(write_disposition="WRITE_APPEND")
