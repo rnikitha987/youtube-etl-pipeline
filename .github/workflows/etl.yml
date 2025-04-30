@@ -20,7 +20,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install google-api-python-client google-cloud-bigquery pandas matplotlib
+         pip install google-api-python-client google-cloud-bigquery pandas matplotlib pyarrow
 
       - name: Decode service account key
         run: echo "$GCP_CREDENTIALS_B64" | base64 --decode > key.json
